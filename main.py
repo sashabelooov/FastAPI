@@ -71,8 +71,10 @@ async def update_user(user_id: int, user_data: UserCreate, db: AsyncSession = De
     db_user = result.scalar_one_or_none()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    db_user.name = user_data.name
-    db_user.email = user_data.email
+    
+    db_user.name = user_data.name # type: ignore
+    db_user.email = user_data.email # type: ignore
+    
     await db.commit()
     await db.refresh(db_user)
     return db_user
