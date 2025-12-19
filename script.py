@@ -95,3 +95,54 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
+
+@app.get("/users/", response_model=list[UserResponse])
+async def get_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User))
+    return result.scalars().all()
+
+
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+async def get_user_by_id(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@app.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(user_id: int, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.id == user_id))
+    db_user = result.scalar_one_or_none()
+    print(f" ******** db_user: {db_user}")
+    # agar user jo'natgan id bo'yicha dbdan qidiriladi va agar user
+    # topilsa db_user id boyicha topligan ma'lumotga teng boladi
+    # va keyin esa user_data dan kelgan info boyicha db_userga tenglab qoyiladi
+    # ******** db_user: <script.User object at 0x7a63142e72f0> 
+    # object qaytaradi va objectda ustun nomi boyicha info olinadi
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db_user.first_name = user_data.first_name # type: ignore
+    db_user.last_name = user_data.last_name # type: ignore
+    db_user.email = user_data.email # type: ignore
+    db_user.phone_number = user_data.phone_number # type: ignore
+    db_user.salery = user_data.salery # type: ignore
+    
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
+
+
+@app.delete("/users/{user_id}")
+async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    await db.delete(user)
+    await db.commit()
+    return {"message": "User deleted succesefully"}
