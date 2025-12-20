@@ -1,17 +1,12 @@
-from fastapi import FastAPI, APIRouter, Depends
+from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Annotated
 
-# create FastAPI app
-app = FastAPI()
-
-# create router
 router = APIRouter(
     prefix="/demo-auth",
     tags=["Demo Auth"]
 )
 
-# security scheme
 security = HTTPBasic()
 
 
@@ -24,6 +19,3 @@ def demo_basic_auth_credentials(
         "username": credentials.username,
         "password": credentials.password,
     }
-
-# attach router to app
-app.include_router(router)
