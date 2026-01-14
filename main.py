@@ -1,44 +1,111 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, EmailStr
-import uvicorn
-from contextlib import asynccontextmanager
+from fastapi import FastAPI, status
+from pydantic import BaseModel
+from typing import List
+from fastapi.exceptions import HTTPException
 
-from core.models import Base, db_helper
-from items_views import router as items_router
-from users.views import router as user_router
+from data import books
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with db_helper.engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
-app.include_router(items_router)
-app.include_router(user_router)
+app = FastAPI()
 
 
 
 
-@app.get("/")
-def hello_user():
-    return {
-        "message": "First function hello!"
-    }
-    
- 
-@app.get("/hello/")
-def hello(name: str = "World"):
-     name = name.strip().title()
-     return {
-         "message": f"Hello {name}"
-     }
- 
- 
+class Book(BaseModel):
+    id: int
+    title: str
+    author: str
+    publisher: str
+    published_date: str 
+    page_count: int
+    language: str
 
- 
 
-if __name__ == '__main__':
-    uvicorn.run("main:app", reload=True)
+class BookUpdateModel(BaseModel):
+    title: str
+    author: str
+    publisher: str
+    page_count: int
+    language: str
+
+
+
+@app.get("/books", response_model=List[Book])
+async def get_all_books():
+    return books
+
+
+
+
+@app.post("/books", status_code=status.HTTP_201_CREATED)
+async def create_a_book(book_data: Book):
+    new_book = book_data.model_dump()
+    books.append(new_book)
+    return new_book
+
+
+
+
+
+@app.get("/book/{book_id}")
+async def get_book_by_id(book_id: int):
+    for book in books:
+        if book['id'] == book_id:
+            return book
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Book not found"
+        )
+
+
+
+
+@app.put ("/book/{book_id}")
+async def update_book(book_id: int, book_update_data: BookUpdateModel):
+    for book in books:
+        if book['id'] == book_id:
+            book['title'] = book_update_data.title
+            book['publisher'] = book_update_data.publisher
+            book['page_count'] = book_update_data.page_count
+            book['language'] = book_update_data.language
+            
+            return book
+        
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail="Book not found"
+        )
+
+
+
+
+
+@app.delete("/book/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book(book_id: int):
+    for book in books:
+        if book['id'] == book_id:
+            books.remove(book)
+
+            return {}
+        
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, 
+        detail="Book not found"
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
