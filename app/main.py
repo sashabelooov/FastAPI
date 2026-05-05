@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.session import engine
+from app.api.v1.router import router as api_router
 
 
 @asynccontextmanager
@@ -38,3 +39,6 @@ async def health_check() -> dict[str, str]:
         "status": "ok",
         "app": settings.app_name,
     }
+
+
+app.include_router(api_router)
