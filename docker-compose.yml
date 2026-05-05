@@ -8,6 +8,9 @@ services:
     environment:
       # Override DATABASE_URL — inside Docker, db host is "db" not "localhost"
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/todo_db
+    volumes:
+      - .:/app                # mount project so generated files (migrations) appear on host
+      - /app/.venv            # keep container's .venv, don't override with host's
     depends_on:
       db:
         condition: service_healthy
