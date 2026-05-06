@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import TimeStampedBase
 
@@ -12,4 +12,4 @@ class User(TimeStampedBase):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    
+    todos: Mapped[list["Todo"]] = relationship("Todo", back_populates="owner")
