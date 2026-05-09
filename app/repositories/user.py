@@ -28,5 +28,9 @@ class UserRepository:
         await session.refresh(user)
         return user
 
+    async def get_all(self, session: AsyncSession) -> list[User]:
+        result = await session.execute(select(User))
+        return list(result.scalars().all())
+
 
 user_repository = UserRepository()
