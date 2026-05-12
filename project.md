@@ -4,6 +4,52 @@ This document describes **the order in which the project files were created**, w
 
 ---
 
+## Phase 0 — Project Bootstrap with `uv`
+
+Everything starts with **[uv](https://docs.astral.sh/uv/)** — an extremely fast Python package manager written in Rust. It replaces `pip`, `pip-tools`, `venv`, and `pyenv` in a single tool.
+
+### Step 1: Initialize the project
+
+```bash
+uv init
+```
+
+This command creates the project scaffold:
+- `pyproject.toml` — project manifest (name, version, Python constraint)
+- `.python-version` — pins Python 3.12
+- `.venv/` — virtual environment (auto-created)
+
+### Step 2: Add dependencies
+
+```bash
+# Core dependencies
+uv add fastapi[standard] pydantic pydantic-settings
+uv add sqlalchemy asyncpg alembic
+uv add redis[asyncio]
+uv add uvicorn[standard]
+
+# Dev dependencies (linting, testing)
+uv add --group dev pytest pytest-asyncio httpx ruff
+```
+
+Each `uv add` command:
+1. Adds the package to `pyproject.toml` under `[project.dependencies]` (or `[dependency-groups.dev]` for dev deps)
+2. Resolves all versions and updates `uv.lock`
+3. Installs the package into `.venv/`
+
+### Step 3: Sync (for other developers)
+
+```bash
+uv sync           # install all deps from lockfile
+uv sync --group dev  # include dev deps too
+```
+
+When another developer clones the repo, they just run `uv sync` — it reads `uv.lock` and installs the exact same versions. No version drift.
+
+> **Why uv?** — It's 10-100x faster than pip, handles Python version management, and produces deterministic lockfiles out of the box.
+
+---
+
 ## Phase 1 — Environment & Project Init
 
 These files are created **first** because everything else depends on them: Python version, dependencies, secrets, and editor/git settings.
