@@ -9,7 +9,8 @@ from sqlalchemy import text
 
 from app.api.v1.router import router as api_v1_router
 from app.core.config import settings
-from app.database.session import AsyncSessionLocal, engine, redis_client
+from app.db.session import AsyncSessionLocal, engine, redis_client
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
